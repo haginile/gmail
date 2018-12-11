@@ -6,8 +6,8 @@ import os
 from email.header import decode_header, make_header
 from imaplib import ParseFlags
 
-class Message():
 
+class Message():
 
     def __init__(self, mailbox, uid):
         self.uid = uid
@@ -34,10 +34,8 @@ class Message():
         self.thread_id = None
         self.thread = []
         self.message_id = None
- 
-        self.attachments = None
-        
 
+        self.attachments = None
 
     def is_read(self):
         return ('\\Seen' in self.flags)
@@ -82,7 +80,6 @@ class Message():
         self.gmail.imap.uid('STORE', self.uid, '-X-GM-LABELS', full_label)
         if full_label in self.labels: self.labels.remove(full_label)
 
-
     def is_deleted(self):
         return ('\\Deleted' in self.flags)
 
@@ -100,13 +97,10 @@ class Message():
     #     self.gmail.imap.uid('STORE', self.uid, '-FLAGS', flag)
     #     if flag in self.flags: self.flags.remove(flag)
 
-
     def move_to(self, name):
         self.gmail.copy(self.uid, name, self.mailbox.name)
         if name not in ['[Gmail]/Bin', '[Gmail]/Trash']:
             self.delete()
-
-
 
     def archive(self):
         self.move_to('[Gmail]/All Mail')
@@ -169,17 +163,16 @@ class Message():
         if re.search(r'X-GM-MSGID (\d+)', raw_headers):
             self.message_id = re.search(r'X-GM-MSGID (\d+)', raw_headers).groups(1)[0]
 
-        
         # Parse attachments into attachment objects array for this message
         self.attachments = [
             Attachment(attachment) for attachment in self.message._payload
-                if not isinstance(attachment, str) and attachment.get('Content-Disposition') is not None
+            if not isinstance(attachment, str) and attachment.get('Content-Disposition') is not None
         ]
-        
 
     def fetch(self):
         if not self.message:
-            response, results = self.gmail.imap.uid('FETCH', self.uid, '(BODY.PEEK[] FLAGS X-GM-THRID X-GM-MSGID X-GM-LABELS)')
+            response, results = self.gmail.imap.uid('FETCH', self.uid,
+                                                    '(BODY.PEEK[] FLAGS X-GM-THRID X-GM-MSGID X-GM-LABELS)')
 
             self.parse(results[0])
 
@@ -213,7 +206,8 @@ class Message():
         self.gmail.use_mailbox(original_mailbox.name)
 
         # combine and sort sent and received messages
-        return sorted(list(dict(list(received_messages.items()) + list(sent_messages.items())).values()), key=lambda m: m.sent_at)
+        return sorted(list(dict(list(received_messages.items()) + list(sent_messages.items())).values()),
+                      key=lambda m: m.sent_at)
 
 
 class Attachment:
@@ -223,7 +217,7 @@ class Attachment:
         # Raw file data
         self.payload = attachment.get_payload(decode=True)
         # Filesize in kilobytes
-        self.size = int(round(len(self.payload)/1000.0))
+        self.size = int(round(len(self.payload) / 1000.0))
 
     def save(self, path=None):
         if path is None:
